@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Photo Editor</string>
+    <string name="gallery">Gallery</string>
+    <string name="slider_desc">Brightness Filter</string>
+    <string name="brightness_filter">Brightness Filter</string>
+</resources>

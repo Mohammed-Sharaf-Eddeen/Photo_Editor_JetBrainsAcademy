@@ -1,0 +1,29 @@
+<h5 id="description">Description</h5>
+
+<p>In this stage, we will add the <code class="language-kotlin">galleryButton</code> and the <code class="language-kotlin">ImageView</code> class<span style="color: #ff4363;"><strong> </strong></span>to display an image from the gallery. Users should be able to load any image from their gallery to <code class="language-kotlin">imageView</code>.</p>
+
+<p><code class="language-kotlin">ImageView</code> is already set up in the layout and <code class="language-kotlin">MainActivity</code> class so that it has a default bitmap from the start. Tests depend on this bitmap, so, please, do not change this setup. Your virtual device probably doesn't have any images in the gallery folder, so to make a manual test, you can set up the gallery using the default camera app from your virtual device to add some pictures there.</p>
+
+<h5 id="objectives">Objectives</h5>
+
+<ul>
+  <li>Add a <code class="language-kotlin">Button</code> for opening your gallery folder with the <code class="language-kotlin">id</code> attribute of <code class="language-kotlin">btnGallery</code>;</li>
+  <li>Keep the already provided <code class="language-kotlin">ImageView</code> class with the <code class="language-kotlin">id</code> attribute of <code class="language-kotlin">ivPhoto</code> and also keep it's initialization code with the default image</li>
+  <li>Add an <code class="language-kotlin">OnClick</code> method to your <code class="language-kotlin">galleryButton</code>. It should launch a new Intent:</li>
+</ul>
+
+<pre><code class="language-kotlin">Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)</code></pre>
+
+<ul>
+  <li>Add the code that handles the result of this activity: </li>
+</ul>
+
+<pre><code class="language-kotlin">resultLauncher = registerForActivityResult(StartActivityForResult()) { result -&gt;
+  if (result.resultCode == Activity.RESULT_OK) { ... }
+}</code></pre>
+
+<p>This helps <code class="language-kotlin">ivPhoto</code> so that the gallery image can be displayed in our app.</p>
+
+<h5 id="example">Example</h5>
+
+<p><img alt="" height="520" name="Android Emulator - Pixel_3a_API_30_x86_5554 2021-12-04 19-28-09.gif" src="https://ucarecdn.com/be6bf9e2-425d-45db-9d12-0ac35cc50454/" width="270"></p>
