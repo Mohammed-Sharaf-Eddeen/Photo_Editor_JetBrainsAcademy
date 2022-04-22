@@ -19,6 +19,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.PermissionChecker
 import com.google.android.material.slider.Slider
+import kotlinx.coroutines.*
 import kotlin.math.pow
 
 
@@ -33,6 +34,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var slSaturation: Slider
     private lateinit var slGamma: Slider
 
+    private lateinit var defaultBitmap: Bitmap
+    private var lastJob: Job? = null
+
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,8 +47,7 @@ class MainActivity : AppCompatActivity() {
         //do not change this line
         ivPhoto.setImageBitmap(createBitmap())
 
-        var defaultBitmap = (ivPhoto.drawable as BitmapDrawable?)?.bitmap!!
-//        val (initialRed, initialGreen, initialBlue) = singleColor(defaultBitmap, 80, 90)
+        defaultBitmap = (ivPhoto.drawable as BitmapDrawable?)?.bitmap!!
 
 
 
@@ -63,59 +66,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         //Add listener for slider to change the brightness
-        slBrightness.addOnChangeListener { _, brightness, _ ->
-            val newBitmap: Bitmap = applyAllFilters(
-                slBrightness.value.toInt(),
-                slContrast.value.toInt(),
-                slSaturation.value.toInt(),
-                slGamma.value.toDouble(),
-                defaultBitmap)
+        slBrightness.addOnChangeListener { _, _, _ ->
+            onSliderChanges()
+        }
 
-            ivPhoto.setImageBitmap(newBitmap)
-
-//            // get actual rgp on the result image
-//            val newRgb = singleColor(ivPhoto.drawable.toBitmap(), 80, 90)
-//            textView2.text = "Actual RGP at x= 80 y=90, $newRgb"
-//
-//            //get expected rgp from the default rgp and add to the slider's value
-//            val expectedRgb = Triple(initialRed + value.toInt(), initialGreen + value.toInt(), initialBlue + value.toInt())
-//            textView.text = "Expected RGP at x= 80 y=90, $expectedRgb"
+        slContrast.addOnChangeListener{ _, _, _ ->
+           onSliderChanges()
 
         }
 
-        slContrast.addOnChangeListener{ _, contrast, _ ->
-            val newBitmap: Bitmap = applyAllFilters(
-                slBrightness.value.toInt(),
-                slContrast.value.toInt(),
-                slSaturation.value.toInt(),
-                slGamma.value.toDouble(),
-                defaultBitmap)
-
-            ivPhoto.setImageBitmap(newBitmap)
+        slSaturation.addOnChangeListener{ _, _, _ ->
+           onSliderChanges()
 
         }
 
-        slSaturation.addOnChangeListener{ _, saturation, _ ->
-            val newBitmap: Bitmap = applyAllFilters(
-                slBrightness.value.toInt(),
-                slContrast.value.toInt(),
-                slSaturation.value.toInt(),
-                slGamma.value.toDouble(),
-                defaultBitmap)
-
-            ivPhoto.setImageBitmap(newBitmap)
-
-        }
-
-        slGamma.addOnChangeListener{ _, gamma, _ ->
-            val newBitmap: Bitmap = applyAllFilters(
-                slBrightness.value.toInt(),
-                slContrast.value.toInt(),
-                slSaturation.value.toInt(),
-                slGamma.value.toDouble(),
-                defaultBitmap)
-
-            ivPhoto.setImageBitmap(newBitmap)
+        slGamma.addOnChangeListener{ _, _, _ ->
+            onSliderChanges()
 
         }
 
@@ -332,6 +298,37 @@ class MainActivity : AppCompatActivity() {
             this.checkSelfPermission(manifestPermission) == PackageManager.PERMISSION_GRANTED
         } else {
             PermissionChecker.checkSelfPermission(this, manifestPermission) == PermissionChecker.PERMISSION_GRANTED
+        }
+    }
+
+    private fun onSliderChanges() {
+
+        lastJob?.cancel()  // we don't need the lastJob computations anymore. If it was already computed nothing happens.
+
+        lastJob = GlobalScope.launch(Dispatchers.Default) {
+            //  the execution inside this block is already asynchronous as you can see by the print below
+
+            // if the current image is null, we have nothing to do with it
+            val bitmap = (ivPhoto.drawable as BitmapDrawable?)?.bitmap ?: return@launch
+
+            // if you need to make some computations and wait for the result, you can use the async block
+            // it will schedule a new coroutine task and return a Deferred object that will have the returned value
+            val allFiltersAppliedCopyDeferred: Deferred<Bitmap> = this.async {
+                /* invoke your computation that returns a value */
+                return@async applyAllFilters(
+                    slBrightness.value.toInt(),
+                    slContrast.value.toInt(),
+                    slSaturation.value.toInt(),
+                    slGamma.value.toDouble(),
+                    defaultBitmap)
+            }
+            // here we wait for the result
+            val newBitmap: Bitmap = allFiltersAppliedCopyDeferred.await()
+
+            runOnUiThread {
+                // here we are already on the main thread, as you can see on the println below
+                ivPhoto.setImageBitmap(newBitmap)
+            }
         }
     }
 

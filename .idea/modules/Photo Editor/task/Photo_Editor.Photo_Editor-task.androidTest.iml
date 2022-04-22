@@ -20,6 +20,7 @@
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/632f538ff5a332356fa261f4dcab12ef/transformed/material-1.4.0-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/b6541c6afa4706d5d2ce7a983005e419/transformed/appcompat-1.3.1-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/e53fd06b7861fcd76aeb3745f6403979/transformed/constraintlayout-2.1.3-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/9c7caecd81186364b371412ab31e013e/transformed/jetified-kotlinx-coroutines-android-1.3.9.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/26d3b60af37a06663af7233914e4b9c9/transformed/jetified-viewpager2-1.0.0-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/68fcab5b67509b9794d6c66ad3f324ac/transformed/fragment-1.3.6-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/50b5de91bf884de95b61f766f52f72e3/transformed/jetified-activity-1.2.4-api.jar</arg>
@@ -55,6 +56,7 @@
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/dd422005987cafc97f7e06b977a12359/transformed/print-1.0.0-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.annotation/annotation/1.2.0/57136ff68ee784c6e19db34ed4a175338fadfde1/annotation-1.2.0.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/36cf95f012431a8404b4e612433864f4/transformed/jetified-kotlin-stdlib-jdk7-1.6.10.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/181da7fb1c0d2f39f61e229d6c11ae89/transformed/jetified-kotlinx-coroutines-core-jvm-1.3.9.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/3661c8c85d6c24a382197fc97200963e/transformed/jetified-kotlin-stdlib-1.6.10.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/d081314d438a9b48a50f3d3f04141edf/transformed/jetified-annotation-experimental-1.1.0-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/0771023f1143cb9594d52b301655c42d/transformed/jetified-annotations-13.0.jar</arg>
@@ -113,11 +115,13 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Photo_Editor.Photo_Editor-task.main" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.collection:collection:1.1.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.lifecycle:lifecycle-common:2.3.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.arch.core:core-common:2.1.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.annotation:annotation:1.2.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.10" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.3.9" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.6.10" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains:annotations:13.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.6.10" level="project" />
