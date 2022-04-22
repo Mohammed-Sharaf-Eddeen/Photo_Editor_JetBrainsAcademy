@@ -3,4 +3,6 @@
     <string name="gallery">Gallery</string>
     <string name="slider_desc">Brightness Filter</string>
     <string name="brightness_filter">Brightness Filter</string>
+    <string name="save">Save</string>
+    <string name="contrast_filter">Contrast Filter</string>
 </resources>

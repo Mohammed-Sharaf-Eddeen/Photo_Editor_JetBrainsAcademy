@@ -1,25 +1,23 @@
 package org.hyperskill.photoeditor
 
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.drawable.toBitmap
-import androidx.core.graphics.set
+import androidx.core.content.PermissionChecker
 import com.google.android.material.slider.Slider
 
 
@@ -27,10 +25,13 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var ivPhoto: ImageView
     private lateinit var galleryButton: Button
+    private lateinit var btnSave: Button
     private lateinit var slBrightness: Slider
     private lateinit var textView: TextView
-    private lateinit var textView2: TextView
+    private lateinit var slContrast: Slider
 
+
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -61,8 +62,8 @@ class MainActivity : AppCompatActivity() {
 
 
         //Add listener for slider to change the brightness
-        slBrightness.addOnChangeListener { _, value, _ ->
-            val newBitmap: Bitmap = applyBrightness(value.toInt(), defaultBitmap)
+        slBrightness.addOnChangeListener { _, brighness, _ ->
+            val newBitmap: Bitmap = applyBrightnessThenContrast(brighness.toInt(), slContrast.value.toInt() , defaultBitmap)
             ivPhoto.setImageBitmap(newBitmap)
 
 //            // get actual rgp on the result image
@@ -75,6 +76,39 @@ class MainActivity : AppCompatActivity() {
 
         }
 
+        slContrast.addOnChangeListener{ _, contrast, _ ->
+            val newBitmap: Bitmap = applyBrightnessThenContrast(slBrightness.value.toInt(), contrast.toInt(), defaultBitmap)
+            ivPhoto.setImageBitmap(newBitmap)
+
+        }
+
+        //Add listener for save button to save the current state of the image
+        btnSave.setOnClickListener { _ ->
+
+            if ( hasPermission("android.permission.WRITE_EXTERNAL_STORAGE") ) {
+
+                val bitmap: Bitmap = (ivPhoto.drawable as BitmapDrawable?)?.bitmap!!
+                val values = ContentValues()
+                values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+                values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                values.put(MediaStore.Images.ImageColumns.WIDTH, bitmap.width)
+                values.put(MediaStore.Images.ImageColumns.HEIGHT, bitmap.height)
+
+                val uri = this@MainActivity.contentResolver.insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
+                ) ?: return@setOnClickListener
+
+                contentResolver.openOutputStream(uri).use {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+                }
+            } else {
+                //ask for the permission
+                val permissions = arrayOf("android.permission.WRITE_EXTERNAL_STORAGE")
+                val permsRequestCode = 200
+                requestPermissions(permissions, permsRequestCode)
+            }
+        }
+
     }
 
     private fun bindViews() {
@@ -82,8 +116,8 @@ class MainActivity : AppCompatActivity() {
         galleryButton = findViewById(R.id.btnGallery)
         slBrightness = findViewById(R.id.slBrightness)
         textView = findViewById(R.id.textView)
-        textView2 = findViewById(R.id.textView2)
-
+        btnSave = findViewById(R.id.btnSave)
+        slContrast = findViewById(R.id.slContrast)
     }
 
     // do not change this function
@@ -127,49 +161,59 @@ class MainActivity : AppCompatActivity() {
         return  Triple(blue,red,green)
     }
 
-    private fun applyBrightness(value: Int, defaultBitmap: Bitmap): Bitmap {
-        val bitmap = defaultBitmap.copy()!!
+    private fun applyBrightnessThenContrast(brightness: Int, contrast: Int, defaultBitmap: Bitmap): Bitmap {
+        val newBitmap = defaultBitmap.copy()!!
+        var averageBrightness = 0
+
         for (x in 0 until defaultBitmap.width) {
             for (y in 0 until defaultBitmap.height) {
+                var newRed: Int
+                var newGreen: Int
+                var newBlue: Int
+                val c = newBitmap.getPixel(x,y)
 
-                val existingColor = bitmap.getPixel(x, y)
+                newRed = Color.red(c)+brightness
+                newRed= 0.coerceAtLeast(kotlin.math.min(newRed, 255))
+                newGreen = Color.green(c)+brightness
+                newGreen = 0.coerceAtLeast(kotlin.math.min(newGreen, 255))
+                newBlue = Color.blue(c)+brightness
+                newBlue = 0.coerceAtLeast(kotlin.math.min(newBlue, 255))
 
-                var newBlue = Color.blue(existingColor) + value
-
-                var newRed = Color.red(existingColor) + value
-
-                var newGreen = Color.green(existingColor) + value
-
-
-                newBlue = if (newBlue > 255) {
-                    255
-                } else if (newBlue < 0) {
-                    0
-                } else {
-                    newBlue
-                }
-
-                newRed = if (newRed > 255) {
-                    255
-                } else if (newRed < 0) {
-                    0
-                } else {
-                    newRed
-                }
-
-                newGreen = if (newGreen > 255) {
-                    255
-                } else if (newGreen < 0) {
-                    0
-                } else {
-                    newGreen
-                }
-
-                val newColor = Color.rgb(newRed, newGreen, newBlue)
-                bitmap.setPixel(x, y, newColor)
+                newBitmap.setPixel(x,y,Color.rgb(newRed,newGreen,newBlue))
+                averageBrightness += (newRed + newGreen + newBlue) / 3
             }
         }
-        return bitmap
+
+        // no need to proceed with doing the contrast filter as its slider value is zero
+        if (contrast == 0) {
+            return newBitmap
+        }
+
+        averageBrightness /= (defaultBitmap.height * defaultBitmap.width)
+
+        for (x in 0 until defaultBitmap.width) {
+            for (y in 0 until defaultBitmap.height) {
+                var newRed: Int
+                var newGreen: Int
+                var newBlue: Int
+                val c = newBitmap.getPixel(x,y)
+
+                newRed = Color.red(c)
+                newGreen = Color.green(c)
+                newBlue = Color.blue(c)
+
+                val alpha:Double = (255.0+contrast)/(255.0-contrast)
+                newRed = (alpha*(newRed-averageBrightness)+averageBrightness).toInt()
+                newRed= 0.coerceAtLeast(kotlin.math.min(newRed, 255))
+                newGreen = (alpha*(newGreen-averageBrightness)+averageBrightness).toInt()
+                newGreen = 0.coerceAtLeast(kotlin.math.min(newGreen, 255))
+                newBlue = (alpha*(newBlue-averageBrightness)+averageBrightness).toInt()
+                newBlue = 0.coerceAtLeast(kotlin.math.min(newBlue, 255))
+
+                newBitmap.setPixel(x,y,Color.rgb(newRed,newGreen,newBlue))
+            }
+        }
+        return newBitmap
     }
 
 //    private fun applyBrightness2(value: Float) {
@@ -183,5 +227,13 @@ class MainActivity : AppCompatActivity() {
 //    }
 
     private fun Bitmap.copy(): Bitmap? = copy(Bitmap.Config.RGB_565, true)
+
+    private fun hasPermission(manifestPermission: String): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            this.checkSelfPermission(manifestPermission) == PackageManager.PERMISSION_GRANTED
+        } else {
+            PermissionChecker.checkSelfPermission(this, manifestPermission) == PermissionChecker.PERMISSION_GRANTED
+        }
+    }
 
 }
