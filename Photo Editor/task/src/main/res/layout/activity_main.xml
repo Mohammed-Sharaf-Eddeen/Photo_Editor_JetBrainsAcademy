@@ -10,11 +10,9 @@
         android:id="@+id/ivPhoto"
         android:layout_width="300dp"
         android:layout_height="300dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.2" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/btnGallery"
@@ -40,15 +38,15 @@
         android:id="@+id/slBrightness"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:contentDescription="@string/slider_desc"
+        android:stepSize="10"
         android:value="0"
         android:valueFrom="-250"
         android:valueTo="250"
-        android:stepSize="10"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnSave"/>
+        app:layout_constraintTop_toBottomOf="@+id/ivPhoto"
+        app:layout_constraintVertical_bias="0.20" />
 
     <TextView
         android:id="@+id/textView"
@@ -64,7 +62,6 @@
         android:id="@+id/slContrast"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:contentDescription="@string/slider_desc"
         android:stepSize="10"
         android:value="0"
         android:valueFrom="-250"
@@ -72,7 +69,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/textView" />
+        app:layout_constraintTop_toBottomOf="@+id/ivPhoto"
+        app:layout_constraintVertical_bias="0.40" />
 
     <TextView
         android:id="@+id/textView3"
@@ -83,6 +81,56 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/slContrast" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/slSaturation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/slider_desc"
+        android:stepSize="10"
+        android:value="0"
+        android:valueFrom="-250"
+        android:valueTo="250"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ivPhoto"
+        app:layout_constraintVertical_bias="0.60" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/slBrightness"
+        android:text="@string/saturation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/slSaturation" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/slGamma"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/slider_desc"
+        android:stepSize="0.2"
+        android:value="1.0"
+        android:valueFrom="0.2"
+        android:valueTo="4.0"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ivPhoto"
+        app:layout_constraintVertical_bias="0.80" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/slBrightness"
+        android:text="@string/gamma"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/slGamma" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -19,6 +19,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.PermissionChecker
 import com.google.android.material.slider.Slider
+import kotlin.math.pow
 
 
 class MainActivity : AppCompatActivity() {
@@ -29,6 +30,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var slBrightness: Slider
     private lateinit var textView: TextView
     private lateinit var slContrast: Slider
+    private lateinit var slSaturation: Slider
+    private lateinit var slGamma: Slider
 
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -59,11 +62,15 @@ class MainActivity : AppCompatActivity() {
             resultLauncher.launch(getImageIntent)
         }
 
-
-
         //Add listener for slider to change the brightness
-        slBrightness.addOnChangeListener { _, brighness, _ ->
-            val newBitmap: Bitmap = applyBrightnessThenContrast(brighness.toInt(), slContrast.value.toInt() , defaultBitmap)
+        slBrightness.addOnChangeListener { _, brightness, _ ->
+            val newBitmap: Bitmap = applyAllFilters(
+                slBrightness.value.toInt(),
+                slContrast.value.toInt(),
+                slSaturation.value.toInt(),
+                slGamma.value.toDouble(),
+                defaultBitmap)
+
             ivPhoto.setImageBitmap(newBitmap)
 
 //            // get actual rgp on the result image
@@ -77,7 +84,37 @@ class MainActivity : AppCompatActivity() {
         }
 
         slContrast.addOnChangeListener{ _, contrast, _ ->
-            val newBitmap: Bitmap = applyBrightnessThenContrast(slBrightness.value.toInt(), contrast.toInt(), defaultBitmap)
+            val newBitmap: Bitmap = applyAllFilters(
+                slBrightness.value.toInt(),
+                slContrast.value.toInt(),
+                slSaturation.value.toInt(),
+                slGamma.value.toDouble(),
+                defaultBitmap)
+
+            ivPhoto.setImageBitmap(newBitmap)
+
+        }
+
+        slSaturation.addOnChangeListener{ _, saturation, _ ->
+            val newBitmap: Bitmap = applyAllFilters(
+                slBrightness.value.toInt(),
+                slContrast.value.toInt(),
+                slSaturation.value.toInt(),
+                slGamma.value.toDouble(),
+                defaultBitmap)
+
+            ivPhoto.setImageBitmap(newBitmap)
+
+        }
+
+        slGamma.addOnChangeListener{ _, gamma, _ ->
+            val newBitmap: Bitmap = applyAllFilters(
+                slBrightness.value.toInt(),
+                slContrast.value.toInt(),
+                slSaturation.value.toInt(),
+                slGamma.value.toDouble(),
+                defaultBitmap)
+
             ivPhoto.setImageBitmap(newBitmap)
 
         }
@@ -118,6 +155,8 @@ class MainActivity : AppCompatActivity() {
         textView = findViewById(R.id.textView)
         btnSave = findViewById(R.id.btnSave)
         slContrast = findViewById(R.id.slContrast)
+        slSaturation = findViewById(R.id.slSaturation)
+        slGamma = findViewById(R.id.slGamma)
     }
 
     // do not change this function
@@ -161,10 +200,11 @@ class MainActivity : AppCompatActivity() {
         return  Triple(blue,red,green)
     }
 
-    private fun applyBrightnessThenContrast(brightness: Int, contrast: Int, defaultBitmap: Bitmap): Bitmap {
+    private fun applyAllFilters(brightness: Int, contrast: Int, saturation: Int, gamma: Double, defaultBitmap: Bitmap): Bitmap {
         val newBitmap = defaultBitmap.copy()!!
         var averageBrightness = 0
 
+        //Apply Brightness
         for (x in 0 until defaultBitmap.width) {
             for (y in 0 until defaultBitmap.height) {
                 var newRed: Int
@@ -184,13 +224,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // no need to proceed with doing the contrast filter as its slider value is zero
-        if (contrast == 0) {
+        // no need to proceed with other filters
+        if (contrast == 0 && saturation == 0 && gamma.compareTo(1) == 0) {
             return newBitmap
         }
 
+        //Apply Contrast
         averageBrightness /= (defaultBitmap.height * defaultBitmap.width)
-
         for (x in 0 until defaultBitmap.width) {
             for (y in 0 until defaultBitmap.height) {
                 var newRed: Int
@@ -213,6 +253,65 @@ class MainActivity : AppCompatActivity() {
                 newBitmap.setPixel(x,y,Color.rgb(newRed,newGreen,newBlue))
             }
         }
+
+        // no need to proceed with other filters
+        if (saturation == 0 && gamma.compareTo(1) == 0) {
+            return newBitmap
+        }
+
+        //Apply Saturation
+        for (x in 0 until defaultBitmap.width) {
+            for (y in 0 until defaultBitmap.height) {
+                var newRed: Int
+                var newGreen: Int
+                var newBlue: Int
+                val c = newBitmap.getPixel(x,y)
+
+                newRed = Color.red(c)
+                newGreen = Color.green(c)
+                newBlue = Color.blue(c)
+                val alpha: Double = (255.0 + saturation)/(255.0 - saturation)
+                val rgbAverage = (newBlue + newGreen + newRed) / 3
+
+                newRed = (alpha*(newRed-rgbAverage)+rgbAverage).toInt()
+                newRed= 0.coerceAtLeast(kotlin.math.min(newRed, 255))
+                newGreen = (alpha*(newGreen-rgbAverage)+rgbAverage).toInt()
+                newGreen = 0.coerceAtLeast(kotlin.math.min(newGreen, 255))
+                newBlue = (alpha*(newBlue-rgbAverage)+rgbAverage).toInt()
+                newBlue = 0.coerceAtLeast(kotlin.math.min(newBlue, 255))
+
+                newBitmap.setPixel(x,y,Color.rgb(newRed,newGreen,newBlue))
+            }
+        }
+
+        // no need to proceed with other filters
+        if (gamma.compareTo(1) == 0) {
+            return newBitmap
+        }
+
+        //Apply gamma
+        for (x in 0 until defaultBitmap.width) {
+            for (y in 0 until defaultBitmap.height) {
+                var newRed: Int
+                var newGreen: Int
+                var newBlue: Int
+                val c = newBitmap.getPixel(x,y)
+
+                newRed = Color.red(c)
+                newGreen = Color.green(c)
+                newBlue = Color.blue(c)
+
+                newRed = (255.0 * ((newRed / 255.0).pow(gamma))).toInt()
+                newRed= 0.coerceAtLeast(kotlin.math.min(newRed, 255))
+                newGreen = (255.0 * ((newGreen / 255.0).pow(gamma))).toInt()
+                newGreen = 0.coerceAtLeast(kotlin.math.min(newGreen, 255))
+                newBlue = (255.0 * ((newBlue / 255.0).pow(gamma))).toInt()
+                newBlue = 0.coerceAtLeast(kotlin.math.min(newBlue, 255))
+
+                newBitmap.setPixel(x,y,Color.rgb(newRed, newGreen, newBlue))
+            }
+        }
+
         return newBitmap
     }
 
